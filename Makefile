@@ -33,3 +33,6 @@ docker_ssh:
 
 direnv:
 	direnv allow
+
+curl:
+	curl -X GET -H "Authorization:auth" http://localhost:8080/api/v1/sample

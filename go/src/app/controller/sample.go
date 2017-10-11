@@ -2,25 +2,23 @@ package controller
 
 import (
 	"app/model"
-	"encoding/json"
 	"net/http"
 
-	"github.com/zenazn/goji/web"
+	"app/mymiddleware"
+
+	"github.com/labstack/echo"
 )
 
-type SampleController struct {
+type Sample struct {
 }
 
-func SetUpSample(m *web.Mux) {
-	api := SampleController{}
-	m.Get("/api/v1/sample", api.Get)
+func (c *Sample) SetupSample(e *echo.Echo) {
+	auth := e.Group("/api/v1/sample", mymiddleware.Auth)
+	auth.GET("", c.Get)
 }
 
-func (a *SampleController) Get(c web.C, w http.ResponseWriter, r *http.Request) {
+func (c *Sample) Get(ctx echo.Context) error {
 	s := model.Sample{}
 	sa := s.Get()
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(sa)
+	return ctx.JSON(http.StatusOK, sa)
 }

@@ -1,50 +1,41 @@
 package controller
 
 import (
-	"app/model"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	"net/http"
+	"net/http/httptest"
+
+	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"github.com/zenazn/goji/web"
 )
 
-func ParseResponse(res *http.Response) (string, int) {
-	defer res.Body.Close()
-	respBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-	return string(respBody), res.StatusCode
-}
-
-func JsonParseResponse(res *http.Response, dst interface{}) int {
-	defer res.Body.Close()
-	respBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-	err = json.Unmarshal(respBody, dst)
-	if err != nil {
-		panic(err)
-	}
-	return res.StatusCode
-}
-
 func TestSample(t *testing.T) {
-	is := assert.New(t)
-	m := web.New()
-	SetUpSample(m)
-	ts := httptest.NewServer(m)
-	defer ts.Close()
-	res, err := http.Get(ts.URL + "/api/v1/sample")
-	is.NoError(err)
-	v := model.Sample{}
-	status := JsonParseResponse(res, &v)
-	is.Equal(http.StatusOK, status)
-	is.Equal("title", v.Title)
-	is.Equal("name", v.Name)
+	t.Run("echoHandler", func(t *testing.T) {
+		candidates := []struct {
+			url      string
+			expected string
+		}{
+			{"http://localhost:8080/api/v1/sample", `{"title":"title","name":"name"}`},
+			{"http://localhost:8080/api/v1/sample", `{"title":"title","name":"name"}`},
+			{"http://localhost:8080/api/v1/sample", `{"title":"title","name":"name"}`},
+		}
+		for _, ca := range candidates {
+			ca := ca
+			t.Run(ca.url, func(t *testing.T) {
+				t.Parallel()
+				req := httptest.NewRequest(echo.GET, ca.url, nil)
+				req.Header.Set(echo.HeaderAuthorization, "auth")
+				rec := httptest.NewRecorder()
+				e := echo.New()
+				c := Sample{}
+				ctx := e.NewContext(req, rec)
+				if assert.NoError(t, c.Get(ctx)) {
+					assert.Equal(t, http.StatusOK, rec.Code)
+					assert.Equal(t, ca.expected, rec.Body.String())
+				}
+			})
+		}
+	})
+
 }
