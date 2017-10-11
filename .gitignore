@@ -12,3 +12,14 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+vendor/
+.DS_Store
+.idea/
+
+go/*
+!go/src/
+go/src/*
+!go/src/app/
+go/src/app/goapp
+tmp/
